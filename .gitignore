@@ -1,0 +1,36 @@
+# Archivos generados por Unity
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Mm]emoryCaptures/
+
+# Configuración local
+UserSettings/
+.vscode/
+
+# Archivos de Unity Cache
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+
+# Archivos de la tienda de paquetes
+*.unitypackage
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Archivos ocultos de configuración de sistema
+.idea/
+*.iml
+*.bak
