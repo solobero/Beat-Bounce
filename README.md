@@ -39,7 +39,7 @@ The system uses the `Random` function to determine what type of obstacles to gen
 ---
 
 ## Level Diagram
-![Level Diagram](docs/nivel.png)
+![Level Diagram](docs/nivel.jpg)
 
 ## Game Mockup
 ![Game Mockup](docs/mockup.png)
