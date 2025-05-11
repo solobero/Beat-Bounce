@@ -59,13 +59,23 @@ public class PlayerController : MonoBehaviour
     
     private void GameOver()
     {
-        Debug.Log("¡Colisión con obstáculo! Reiniciando juego...");
+        Debug.Log("¡Colisión con obstáculo! Mostrando pantalla de Game Over...");
         
         if (rhythmSystem != null)
         {
             rhythmSystem.StopGame();
         }
         
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        // Buscamos el GameManager y llamamos a su método de GameOver
+        GameManager gameManager = FindObjectOfType<GameManager>();
+        if (gameManager != null)
+        {
+            gameManager.ShowGameOver();
+        }
+        else
+        {
+            // Si no hay GameManager, reiniciamos la escena como fallback
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
     }
 }

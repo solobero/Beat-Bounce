@@ -5,6 +5,7 @@ using TMPro;
 public class GameManager : MonoBehaviour
 {
     public GameObject obstacle;
+    public GameOverScreen GameOverScreen;
     public Transform spawnPoint;
     int score = 0;
     public GameObject playButton;
@@ -74,5 +75,27 @@ public class GameManager : MonoBehaviour
     {
         score++;
         scoreText.text = score.ToString();
+    }
+
+    public void ShowGameOver()
+    {
+        // Detenemos la generación de obstáculos
+        gameStarted = false;
+        
+        // Cancelamos la invocación repetida de ScoreUp
+        CancelInvoke("ScoreUp");
+        
+        // Si estamos usando detección de beat, removemos el listener
+        if (useRealTimeBeatDetection)
+        {
+            beatDetection.OnBeat.RemoveListener(SpawnObstacleOnBeat);
+        }
+        else
+        {
+            StopCoroutine("SpawnObstacles");
+        }
+        
+        // Mostramos la pantalla de GameOver con la puntuación actual
+        GameOverScreen.Setup(score);
     }
 }
