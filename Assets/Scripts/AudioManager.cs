@@ -1,12 +1,15 @@
 using UnityEngine;
+using System.Collections;
 
 public class AudioManager : MonoBehaviour
 {
     [Header("------Audio Source------")]
     [SerializeField] private AudioSource musicSource;
 
-    [Header("------Audio Clip------")]
-    public AudioClip background;
+    [Header("------Audio Clips------")]
+    public AudioClip[] musicTracks;  // Arreglo para almacenar todas tus canciones
+    public float[] trackBPMs;        // BPM correspondiente a cada canción
+    public int currentTrackIndex = 0; // Hacerlo público para facilitar la depuración
     
     [Header("------Beat Detection------")]
     public bool useBeatDetection = true;
@@ -19,16 +22,6 @@ public class AudioManager : MonoBehaviour
     {
         if (musicSource == null)
             musicSource = GetComponent<AudioSource>();
-            
-        if (background != null && musicSource != null)
-        {
-            musicSource.clip = background;
-            Debug.Log("AudioClip asignado exitosamente: " + background.name);
-        }
-        else
-        {
-            Debug.LogError("¡PROBLEMA! AudioClip no está asignado o el AudioSource es nulo");
-        }
         
         if (useBeatDetection && GetComponent<BeatDetection>() == null)
         {
@@ -44,10 +37,19 @@ public class AudioManager : MonoBehaviour
 
     private void Start()
     {
-        if (musicSource != null && background != null && musicSource.clip == null)
+        // Verificar que tenemos pistas y BPMs configurados
+        if (musicTracks == null || musicTracks.Length == 0)
         {
-            musicSource.clip = background;
-            Debug.Log("AudioClip asignado en Start: " + background.name);
+            Debug.LogError("No hay pistas de audio configuradas en AudioManager");
+        }
+        
+        if (trackBPMs == null || trackBPMs.Length == 0)
+        {
+            Debug.LogError("No hay BPMs configurados en AudioManager");
+        }
+        else if (trackBPMs.Length != musicTracks.Length)
+        {
+            Debug.LogWarning("El número de BPMs configurados no coincide con el número de pistas de audio");
         }
     }
     
@@ -63,8 +65,24 @@ public class AudioManager : MonoBehaviour
         }
     }
 
+    // Método sobrecargado para soportar ambos casos: con y sin parámetro
     public void PlayMusic()
     {
+        PlayMusic(currentTrackIndex); // Utiliza el índice actual si no se especifica uno
+    }
+
+    public void PlayMusic(int trackIndex)
+    {
+        // Validar que el índice sea válido
+        if (trackIndex >= 0 && trackIndex < musicTracks.Length)
+        {
+            currentTrackIndex = trackIndex;
+        }
+        else
+        {
+            Debug.LogWarning("Índice de pista inválido: " + trackIndex + ". Usando la pista actual: " + currentTrackIndex);
+        }
+        
         if (musicSource == null)
         {
             Debug.LogError("AudioSource es nulo. Buscando en el GameObject...");
@@ -77,21 +95,27 @@ public class AudioManager : MonoBehaviour
             }
         }
         
-        if (musicSource.clip == null)
+        if (musicTracks.Length == 0)
         {
-            Debug.LogError("No hay clip asignado. Intentando asignar background...");
-            
-            if (background != null)
-            {
-                musicSource.clip = background;
-                Debug.Log("Clip asignado manualmente: " + background.name);
-            }
-            else
-            {
-                Debug.LogError("No hay background disponible para asignar.");
-                return;
-            }
+            Debug.LogError("No hay canciones disponibles.");
+            return;
         }
+        
+        if (currentTrackIndex >= musicTracks.Length)
+        {
+            Debug.LogError("Índice de pista fuera de rango: " + currentTrackIndex);
+            currentTrackIndex = 0; // Usar la primera pista como fallback
+        }
+        
+        // Asignar la canción actual
+        AudioClip trackToPlay = musicTracks[currentTrackIndex];
+        if (trackToPlay == null)
+        {
+            Debug.LogError("La pista en el índice " + currentTrackIndex + " es nula.");
+            return;
+        }
+        
+        musicSource.clip = trackToPlay;
         
         musicSource.playOnAwake = false;
         musicSource.loop = true;
@@ -99,14 +123,57 @@ public class AudioManager : MonoBehaviour
         musicSource.time = 0;
         musicSource.Play();
         
-        Debug.Log("Reproducción forzada: " + musicSource.clip.name);
-        Debug.Log("isPlaying después de Play(): " + musicSource.isPlaying);
-        Debug.Log("time después de Play(): " + musicSource.time);
+        Debug.Log("Reproduciendo pista: " + trackToPlay.name + " (índice: " + currentTrackIndex + ")");
+        
+        // Configurar BeatDetector para esta pista
+        ConfigureBeatDetectorForTrack(currentTrackIndex);
         
         StartCoroutine(VerificarReproduccion());
     }
 
-    private System.Collections.IEnumerator VerificarReproduccion()
+    private void ConfigureBeatDetectorForTrack(int trackIndex)
+    {
+        if (beatDetector == null || trackBPMs == null || trackIndex < 0 || trackIndex >= trackBPMs.Length)
+            return;
+        
+        float bpm = trackBPMs[trackIndex];
+        beatDetector.minimumTimeBetweenBeats = 60f / bpm * 0.5f;
+        
+        // Configuraciones específicas por pista si es necesario
+        switch (trackIndex)
+        {
+            case 0: // Primera canción
+                beatDetector.threshold = 0.15f;
+                beatDetector.frequencyBand = 1;
+                break;
+            case 1: // Segunda canción
+                beatDetector.threshold = 0.2f;
+                beatDetector.frequencyBand = 2;
+                break;
+            case 2: // Tercera canción
+                beatDetector.threshold = 0.25f;
+                beatDetector.frequencyBand = 0;
+                break;
+            default:
+                beatDetector.threshold = beatThreshold;
+                beatDetector.frequencyBand = 1;
+                break;
+        }
+        
+        Debug.Log($"BeatDetector configurado para pista {trackIndex}: BPM={bpm}, threshold={beatDetector.threshold}, band={beatDetector.frequencyBand}");
+    }
+
+    // Método para obtener el BPM actual
+    public float GetCurrentBPM()
+    {
+        if (trackBPMs != null && currentTrackIndex < trackBPMs.Length)
+        {
+            return trackBPMs[currentTrackIndex];
+        }
+        return 120f; // BPM predeterminado si no hay información disponible
+    }
+
+    private IEnumerator VerificarReproduccion()
     {
         yield return new WaitForSeconds(0.5f);
         
@@ -122,6 +189,16 @@ public class AudioManager : MonoBehaviour
                 musicSource.time = 0;
                 musicSource.Play();
             }
+        }
+    }
+
+    // Añade este método al AudioManager.cs
+    public void StopMusic()
+    {
+        if (musicSource != null)
+        {
+            musicSource.Stop();
+            Debug.Log("Música detenida");
         }
     }
 }
