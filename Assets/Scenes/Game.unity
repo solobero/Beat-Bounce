@@ -996,7 +996,8 @@ MonoBehaviour:
   audioManager: {fileID: 592562837}
   levelMenu: {fileID: 1588755222}
   bpm: 120
-  useRealTimeBeatDetection: 1
+  initialGracePeriod: 5
+  countdownText: {fileID: 0}
 --- !u!4 &543825729
 Transform:
   m_ObjectHideFlags: 0
@@ -1082,14 +1083,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc220cd4e2680f94cacd22028407fcb7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  showVisualizer: 1
-  sampleSize: 512
-  heightMultiplier: 100
-  widthMultiplier: 5
-  barColor: {r: 0, g: 1, b: 1, a: 1}
-  showBeatMarkers: 1
-  beatColor: {r: 1, g: 0, b: 0, a: 1}
-  beatMarkerDuration: 0.2
 --- !u!114 &592562840
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1822,7 +1815,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -104}
+  m_AnchoredPosition: {x: 0, y: -108}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1346297134
@@ -2193,10 +2186,6 @@ MonoBehaviour:
   - {fileID: 987753928}
   - {fileID: 1607434130}
   - {fileID: 1346297134}
-  levelTitles:
-  - {fileID: 481203396}
-  - {fileID: 747180051}
-  - {fileID: 1811221227}
   audioManager: {fileID: 592562837}
   gameManager: {fileID: 543825728}
 --- !u!114 &1588755223
