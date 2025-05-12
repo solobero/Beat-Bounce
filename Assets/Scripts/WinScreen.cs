@@ -8,7 +8,6 @@ public class WinScreen : MonoBehaviour
     
     private void Start()
     {
-        // Aseguramos que la pantalla esté desactivada al iniciar
         gameObject.SetActive(false);
     }
     
@@ -19,7 +18,6 @@ public class WinScreen : MonoBehaviour
             scoreText.text = score.ToString();
     }
     
-    // Método para el botón de menú
     public void RestartButton()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);

@@ -23,7 +23,6 @@ public class PlayerController : MonoBehaviour
     {
         if(Input.GetMouseButtonDown(0) && canJump)
         {
-            //jump
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
         }
     }
@@ -66,7 +65,6 @@ public class PlayerController : MonoBehaviour
             rhythmSystem.StopGame();
         }
         
-        // Buscamos el GameManager y llamamos a su método de GameOver
         GameManager gameManager = FindObjectOfType<GameManager>();
         if (gameManager != null)
         {
@@ -74,7 +72,6 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            // Si no hay GameManager, reiniciamos la escena como fallback
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
     }
