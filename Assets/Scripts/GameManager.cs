@@ -6,6 +6,7 @@ public class GameManager : MonoBehaviour
 {
     public GameObject obstacle;
     public GameOverScreen GameOverScreen;
+    public GameObject winScreen; // Referencia a la pantalla de victoria
     public Transform spawnPoint;
     int score = 0;
     public GameObject playButton;
@@ -37,6 +38,18 @@ public class GameManager : MonoBehaviour
             countdownText.gameObject.SetActive(false);
         }
         
+        // Asegúrate de que la pantalla de victoria esté oculta al inicio
+        if (winScreen != null)
+        {
+            winScreen.SetActive(false);
+        }
+        
+        // Suscribirse al evento de finalización de canción
+        if (audioManager != null)
+        {
+            audioManager.OnSongComplete += ShowWinScreen;
+        }
+        
         Debug.Log("GameManager iniciado - beatInterval: " + beatInterval);
     }
     
@@ -49,6 +62,12 @@ public class GameManager : MonoBehaviour
         {
             StopCoroutine(obstacleCoroutine);
             obstacleCoroutine = null;
+        }
+        
+        // Ocultar la pantalla de victoria si estuviera visible
+        if (winScreen != null)
+        {
+            winScreen.SetActive(false);
         }
         
         // Eliminar obstáculos existentes
@@ -64,6 +83,12 @@ public class GameManager : MonoBehaviour
         score = 0;
         scoreText.text = "0";
         isGameRunning = false;
+        
+        // Reiniciar la verificación de la canción
+        if (audioManager != null)
+        {
+            audioManager.StopSongCompletionCheck();
+        }
         
         // Iniciar con periodo de gracia
         StartCoroutine(StartWithCountdown());
@@ -152,8 +177,45 @@ public class GameManager : MonoBehaviour
         }
     }
     
+    // Método para mostrar la pantalla de victoria
+    private void ShowWinScreen()
+    {
+        if (isGameRunning)
+        {
+            Debug.Log("¡Victoria! Canción completada sin chocar.");
+            
+            // Detener el juego
+            isGameRunning = false;
+            
+            // Detener generación de obstáculos
+            if (obstacleCoroutine != null)
+            {
+                StopCoroutine(obstacleCoroutine);
+                obstacleCoroutine = null;
+            }
+            
+            // Detener incremento de puntuación
+            CancelInvoke("ScoreUp");
+            
+            // Mostrar pantalla de victoria
+            if (winScreen != null)
+            {
+                // Si tiene un componente WinScreen, usarlo
+                WinScreen winScreenComponent = winScreen.GetComponent<WinScreen>();
+                if (winScreenComponent != null)
+                {
+                    winScreenComponent.Setup(score);
+                }
+                else
+                {
+                    // Si no, simplemente activar el GameObject
+                    winScreen.SetActive(true);
+                }
+            }
+        }
+    }
+    
     // Llamado cuando el jugador pierde
-    // Reemplaza el método ShowGameOver en GameManager.cs
     public void ShowGameOver()
     {
         Debug.Log("Game Over - Deteniendo juego");
@@ -161,10 +223,11 @@ public class GameManager : MonoBehaviour
         // Detener el juego
         isGameRunning = false;
         
-        // Detener la música
+        // Detener la música y la verificación de finalización
         if (audioManager != null)
         {
             audioManager.StopMusic();
+            audioManager.StopSongCompletionCheck();
         }
         
         // Detener generación de obstáculos
@@ -212,5 +275,14 @@ public class GameManager : MonoBehaviour
     public void TestSpawnObstacle()
     {
         SpawnSingleObstacle();
+    }
+    
+    private void OnDestroy()
+    {
+        // Desuscribirse del evento al destruir
+        if (audioManager != null)
+        {
+            audioManager.OnSongComplete -= ShowWinScreen;
+        }
     }
 }

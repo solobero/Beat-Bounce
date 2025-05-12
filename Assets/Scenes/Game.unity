@@ -297,6 +297,7 @@ GameObject:
   - component: {fileID: 232362923}
   - component: {fileID: 232362925}
   - component: {fileID: 232362924}
+  - component: {fileID: 232362926}
   m_Layer: 5
   m_Name: Win
   m_TagString: Untagged
@@ -363,6 +364,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 232362922}
   m_CullTransparentMesh: 1
+--- !u!114 &232362926
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 232362922}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e25bd24cb328ac4d8b21aa03a99ddfb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  scoreText: {fileID: 0}
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
@@ -1068,6 +1082,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   obstacle: {fileID: 1550434474315892228, guid: a6b8bb2c53ac5634e9c62f7ad4454c74, type: 3}
   GameOverScreen: {fileID: 335710211}
+  winScreen: {fileID: 232362922}
   spawnPoint: {fileID: 32749616}
   playButton: {fileID: 1691465517}
   scoreText: {fileID: 934105916}

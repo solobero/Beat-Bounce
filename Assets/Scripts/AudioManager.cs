@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using System;  // Para usar eventos
 
 public class AudioManager : MonoBehaviour
 {
@@ -16,7 +17,16 @@ public class AudioManager : MonoBehaviour
     [Range(0.05f, 0.5f)]
     public float beatThreshold = 0.2f;
 
+    // Duraciones de las canciones en segundos (70 segundos = 1:10 minutos)
+    public float[] songDurations = { 70f, 70f, 70f, 70f };
+
     private BeatDetection beatDetector;
+    
+    // Evento para notificar cuando una canción termina
+    public event Action OnSongComplete;
+    
+    // Coroutine para el temporizador de la canción
+    private Coroutine timerCoroutine;
 
     private void Awake()
     {
@@ -50,6 +60,28 @@ public class AudioManager : MonoBehaviour
         else if (trackBPMs.Length != musicTracks.Length)
         {
             Debug.LogWarning("El número de BPMs configurados no coincide con el número de pistas de audio");
+        }
+
+        // Verificar que tenemos duraciones configuradas
+        if (songDurations == null || songDurations.Length == 0)
+        {
+            Debug.LogWarning("No hay duraciones de canciones configuradas. Usando valor predeterminado de 70 segundos.");
+            songDurations = new float[] { 70f, 70f, 70f, 70f };
+        }
+        else if (songDurations.Length != musicTracks.Length)
+        {
+            Debug.LogWarning("El número de duraciones configuradas no coincide con el número de pistas de audio. Ajustando...");
+            
+            // Ajustar el array de duraciones al mismo tamaño que el de pistas
+            float[] tempDurations = new float[musicTracks.Length];
+            for (int i = 0; i < musicTracks.Length; i++)
+            {
+                if (i < songDurations.Length)
+                    tempDurations[i] = songDurations[i];
+                else
+                    tempDurations[i] = 70f; // Valor predeterminado
+            }
+            songDurations = tempDurations;
         }
     }
     
@@ -107,6 +139,9 @@ public class AudioManager : MonoBehaviour
             currentTrackIndex = 0; // Usar la primera pista como fallback
         }
         
+        // Detener el temporizador anterior si existe
+        StopSongCompletionCheck();
+        
         // Asignar la canción actual
         AudioClip trackToPlay = musicTracks[currentTrackIndex];
         if (trackToPlay == null)
@@ -116,12 +151,18 @@ public class AudioManager : MonoBehaviour
         }
         
         musicSource.clip = trackToPlay;
-        
-        musicSource.playOnAwake = false;
-        musicSource.loop = true;
+        musicSource.loop = true; // Podemos dejarlo en loop para evitar silencios
         musicSource.Stop();
         musicSource.time = 0;
         musicSource.Play();
+        
+        // Iniciar el temporizador para esta canción
+        if (currentTrackIndex < songDurations.Length)
+        {
+            float duration = songDurations[currentTrackIndex];
+            timerCoroutine = StartCoroutine(SongTimer(duration));
+            Debug.Log("Iniciando temporizador para la canción " + currentTrackIndex + " con duración: " + duration + " segundos");
+        }
         
         Debug.Log("Reproduciendo pista: " + trackToPlay.name + " (índice: " + currentTrackIndex + ")");
         
@@ -129,6 +170,19 @@ public class AudioManager : MonoBehaviour
         ConfigureBeatDetectorForTrack(currentTrackIndex);
         
         StartCoroutine(VerificarReproduccion());
+    }
+
+    private IEnumerator SongTimer(float duration)
+    {
+        yield return new WaitForSeconds(duration);
+        
+        Debug.Log("Temporizador de canción completado después de " + duration + " segundos");
+        
+        // Lanzar el evento de finalización
+        if (OnSongComplete != null)
+        {
+            OnSongComplete();
+        }
     }
 
     private void ConfigureBeatDetectorForTrack(int trackIndex)
@@ -192,12 +246,23 @@ public class AudioManager : MonoBehaviour
         }
     }
 
+    public void StopSongCompletionCheck()
+    {
+        if (timerCoroutine != null)
+        {
+            StopCoroutine(timerCoroutine);
+            timerCoroutine = null;
+            Debug.Log("Temporizador de canción detenido");
+        }
+    }
+
     // Añade este método al AudioManager.cs
     public void StopMusic()
     {
         if (musicSource != null)
         {
             musicSource.Stop();
+            StopSongCompletionCheck();
             Debug.Log("Música detenida");
         }
     }
